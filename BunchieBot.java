@@ -12,6 +12,8 @@ public class BunchieBot extends Robot {
    private String target;
    private boolean isTrigger;
    private int counter;
+   private String trackName;
+   private double gunTurnAmt;
 
    /**
     * run: BunchieBot's default behavior
@@ -95,10 +97,5 @@ public class BunchieBot extends Robot {
    }
 
    public void onBulletMiss(BulletMissedEvent e) {
-      counter++;
-      if (counter >= 10) {
-         isTrigger = false;
-         counter = 0;
-      }
    }
 }
