@@ -87,10 +87,10 @@ public class PolyBot extends Robot
    }
 
    public void movement {
-   double distance = Point2D.distance(x, y, getBattleFieldWidth() / 5,
-         getBattleFieldHeight / 2)
-   battleFieldLengthComparison(getX(), getY());
-}
+   		double distance = Point2D.distance(x, y, getBattleFieldWidth() / 5,
+         	getBattleFieldHeight / 2)
+   		battleFieldLengthComparison(getX(), getY());
+	}
    public void battleFieldLengthComparison(double x, double y) {
       if (y < getBattleFieldHeight() / 2) {
          battleFieldWidthComparison(x);
@@ -101,7 +101,7 @@ public class PolyBot extends Robot
    }
    public void battleFieldWidthComparison(double x) {
       if (x < getBattleFieldWidth() / 2) {
-
+		  
       }
    }
 }
