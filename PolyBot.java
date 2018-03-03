@@ -12,63 +12,48 @@ public class PolyBot extends Robot
 	/**
 	 * run: PolyBot's default behavior
 	 */
+
+	boolean beginningGame = true;
+	boolean midGame = false;
+	boolean endGame = false;
+	boolean check = false;
+	
 	public void run() {
 		// Initialization of the robot should be put here
 		int totalBots = getOthers();
+		GamePhase g1 = new GamePhase(totalBots);
 		double height = getBattleFieldHeight();
 		double width = getBattleFieldWidth();
-		boolean endGame = false;
-		boolean beginningGame = true;
-		boolean midGame = false;
+
 		int frameCount = 0;
-		// After trying out your robot, try uncommenting the import at the top,
-		// and the next line:
 
-		setColors(Color.green,Color.yellow,Color.green); // body,gun,radar
+		setColors(Color.green,Color.yellow,Color.green);
 		
-		// Robot main loop
 		while(true) {
-		//Activates if loop when there are less than 50% bots remaining
-			frameCount++;
-			if(frameCount%20 == 0) {
-				if(getOthers() < totalBots/2) {	
-					midGame = true;
-					beginningGame = false;
-				}
-				if(getOthers() == 2) {
-					endGame = true;
-					midGame = false;
-				}
-			}
-
-
-		//Activates when there are 1 or 2 bots left
-
-		else {
+			turnRight(10);
 			ahead(100);
-			turnGunRight(360);
-			back(100);
-			turnGunRight(360);
+			
+			if(check) {
+				g1.checkGamePhase(getOthers());
 			}
 		}
 	}
 	
-	public void shoot() {
-		
-	}
 
-	/**
-	 * onScannedRobot: What to do when you see another robot
-	 */
 	public void onScannedRobot(ScannedRobotEvent e) {
 		// Replace the next line with any behavior you would like
 		double distance = e.getDistance();
-		out.println(distance + "away from " + e.getName());
+		out.println(distance + " away from " + e.getName());
 		
-		double firePower = 500 / distance;
+		double firePower = 700 / distance;
 		out.println("firepower is at: " + firePower);
 		fire(firePower);
-		fire(firePower);
+		check = true;
+		if(endGame) {
+			turnGunLeft(e.getHeading());
+			turnLeft(e.getHeading());
+			ahead(100);
+		}
 	}
 
 	/**
@@ -86,4 +71,5 @@ public class PolyBot extends Robot
 		// Replace the next line with any behavior you would like
 		back(20);
 	}	
+	
 }
