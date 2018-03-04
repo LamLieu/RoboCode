@@ -10,7 +10,7 @@ import java.awt.Color;
 /**
  * PolyBot - a robot by Lam Lieu and Juan Vera
  */
-public class PolyBot extends Robot {
+public class PolyBot extends AdvancedRobot {
     /**
      * run: PolyBot's default behavior
      */
@@ -23,21 +23,17 @@ public class PolyBot extends Robot {
     public void run() {
         // Initialization of the robot should be put here
         int totalBots = getOthers();
-        GamePhase g1 = new GamePhase(totalBots);
         double height = getBattleFieldHeight();
         double width = getBattleFieldWidth();
+		setAdjustGunForRobotTurn(true);
 
         int frameCount = 0;
 
         setColors(Color.green, Color.yellow, Color.green);
 
         while (true) {
-            turnRight(10);
-            ahead(100);
-
-            if (check) {
-                g1.checkGamePhase(getOthers());
-            }
+		movement();
+		turnGunRight(360);
         }
     }
 
@@ -53,7 +49,6 @@ public class PolyBot extends Robot {
         check = true;
         if (endGame) {
             turnGunLeft(e.getHeading());
-            turnLeft(e.getHeading());
             ahead(100);
         }
     }
@@ -63,27 +58,61 @@ public class PolyBot extends Robot {
      */
     public void onHitByBullet(HitByBulletEvent e) {
         // Replace the next line with any behavior you would like
-        back(10);
+		turnRight(45);
     }
 
     /**
      * onHitWall: What to do when you hit a wall
      */
     public void onHitWall(HitWallEvent e) {
-        turnRight(90);
-        ahead(100);
+	    int count = 0;
+		if (count % 2 == 0) {
+        turnRight(30);
+        ahead(50);
+		}
+		else {
+		turnLeft(30);
+		ahead(50);
+		}
+		count++;
     }
 
     // Some code from http://robowiki.net/wiki/GoTo
     private void movement() {
         double targetX, targetY;
-
-        // Calculates the closest vertex of the diamond
-        targetY = battleFieldHeightComparison(getY());
-        targetX = battleFieldWidthComparison(getX());
+		double x1 = getBattleFieldWidth() / 2;
+		double y1 = getBattleFieldHeight() / 2;
+		double x2 = getBattleFieldWidth() - getBattleFieldWidth() / 20;
+		double y2 = getBattleFieldHeight() - getBattleFieldHeight() / 20;
+		double x3 = getBattleFieldWidth() / 20;
+		double y3 = getBattleFieldHeight() / 20;
+        // Calculates the closest vertex of the diamond that is closest to the robot
+        targetY = battleFieldHeightComparison();
+        targetX = battleFieldWidthComparison();
+		// Sets new target coordinates when robot is on the vertex
+		if (getX() == x1 && getY() == y2) {
+		    targetX = x3;
+			targetY = y1;
+		}
+		else if (getX() == x3 && getY() == y1) {
+			targetX = x1;
+			targetY = y2;
+		}
+		else if (getX() == x1 && getY() == y2) {
+			targetX = x2;
+			targetY = y1;
+		}
+		else if (getX() == x2 && getY() == y2) {
+			targetX = x1;
+			targetY = y2;
+		}
+		else if (getX() == x3 && getY() == y3) {
+			targetX = x1;
+			targetY = y2;
+		}
         // Makes the coordinate positive
-        targetX = (targetX < 0) ? -targetX : targetX;
-        targetY = (targetY < 0) ? -targetY : targetY;
+        //targetX = (targetX < 0) ? -targetX : targetX;
+        //targetY = (targetY < 0) ? -targetY : targetY;
         // Calculates the angle to target location
         double angleToTarget = Math.atan2(targetX, targetY);
 
@@ -97,34 +126,30 @@ public class PolyBot extends Robot {
          */
         double distance = Math.hypot(targetX, targetY);
 
-        /* This is a simple method of performing set front as back */
-        double turnAngle = Math.atan(Math.tan(targetAngle));
-        setTurnRightRadians(turnAngle);
-        if (targetAngle == turnAngle) {
-            setAhead(distance);
-        }
-        else {
-            setBack(distance);
-        }
+        setAhead(distance);
         execute();
     }
 
     /* Calculates which target x coordinate the bot should go based on spawn location */
-    private double battleFieldHeightComparison(double robotY) {
-        if (robotY < getBattleFieldHeight() / 2) {
+    private double battleFieldHeightComparison() {
+		double robotYCoord = getY();
+		double halfOfBattleFieldHeight = getBattleFieldHeight();
+        if (robotYCoord <= halfOfBattleFieldHeight) {
             return getBattleFieldHeight() / 10;
         }
-        else if (robotY > getBattleFieldHeight() / 2) {
-            return getBattleFieldHeight() - getBattleFieldHeight() / 10;
+        else if (robotYCoord > halfOfBattleFieldHeight) {
+            return getBattleFieldHeight() - getBattleFieldHeight() / 20;
         }
         return getBattleFieldHeight() / 10;
     }
 
-    private double battleFieldWidthComparison(double robotX) {
-        if (robotX < getBattleFieldWidth() / 2) {
-            return getBattleFieldWidth() / 10;
+    private double battleFieldWidthComparison() {
+		double robotXCoord = getX();
+		double halfOfBattleFieldWidth = getBattleFieldWidth();
+        if (robotXCoord <= halfOfBattleFieldWidth) {
+            return getBattleFieldWidth() / 2;
         }
-        else if (robotX > getBattleFieldWidth() / 2) {
+        else if (robotXCoord > halfOfBattleFieldWidth) {
             return getBattleFieldWidth() - getBattleFieldWidth() / 10;
         }
         return getBattleFieldWidth() / 10;
