@@ -1,79 +1,54 @@
 package IfAndOnlyIfs;
 
-import robocode.*;
-import robocode.util.Utils;
+        import robocode.*;
+        import robocode.util.Utils;
 
-import java.awt.Color;
+        import java.awt.Color;
 
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
 
 /**
  * PolyBot - a robot by Lam Lieu and Juan Vera
  */
-public class PolyBot extends AdvancedRobot {
-    /**
-     * run: PolyBot's default behavior
-     */
+public class PolyBot extends AdvancedRobot
+{
 
-    boolean beginningGame = true;
-    boolean midGame = false;
-    boolean endGame = false;
-    boolean check = false;
-
-    public void run() {
-        // Initialization of the robot should be put here
-        int totalBots = getOthers();
-        GamePhase g1 = new GamePhase(totalBots);
-        double height = getBattleFieldHeight();
-        double width = getBattleFieldWidth();
-
-        int frameCount = 0;
-
-        setColors(Color.green, Color.yellow, Color.green);
-
-        while (true) {
-            movement();
-            if (check) {
-                g1.checkGamePhase(getOthers());
-            }
-        }
-    }
-
-
-    public void onScannedRobot(ScannedRobotEvent e) {
-        // Replace the next line with any behavior you would like
-        double distance = e.getDistance();
-        out.println(distance + " away from " + e.getName());
-
-        double firePower = 700 / distance;
-        out.println("firepower is at: " + firePower);
-        fire(firePower);
-        check = true;
-        if (endGame) {
-            turnGunLeft(e.getHeading());
-            turnLeft(e.getHeading());
-            ahead(100);
-        }
-    }
-
-    /**
-     * onHitByBullet: What to do when you're hit by a bullet
-     */
-    public void onHitByBullet(HitByBulletEvent e) {
-        // Replace the next line with any behavior you would like
-        back(10);
-    }
-
-    /**
-     * onHitWall: What to do when you hit a wall
-     */
-    public void onHitWall(HitWallEvent e) {
-        turnRight(90);
-        ahead(100);
-    }
-
-    // Some code from http://robowiki.net/wiki/GoTo
-    private void movement() {
+	public boolean check = true;
+	public boolean beginGame = true;
+	public boolean midGame = false;
+	public boolean endGame = false;
+	public int botCount;
+	
+	public void run() {
+	
+		botCount = getOthers();
+		
+		setColors(Color.RED, Color.BLACK, Color.WHITE);
+		
+		while(true) {
+			setTurnGunLeft(360);
+			movement();
+		}
+	}
+	
+	public void onScannedRobot(ScannedRobotEvent e) {
+		double firePower = 700 / e.getDistance();
+		fire(firePower);
+	}
+	
+	public void onRobotDeath(RobotDeathEvent e) {
+		out.println("checking game");
+		if(getOthers() < botCount/2 && getOthers() > 2) {
+			midGame = true;
+			beginGame = false;
+		}
+		else if(getOthers() <= 2) {
+			midGame = false;
+			endGame = true;
+		}
+	}
+	
+	private void movement() {
         double targetX, targetY;
 
         // Calculates the closest vertex of the diamond
