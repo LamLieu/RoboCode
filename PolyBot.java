@@ -10,7 +10,7 @@ import java.awt.Color;
 /**
  * PolyBot - a robot by Lam Lieu and Juan Vera
  */
-public class PolyBot extends Robot {
+public class PolyBot extends AdvancedRobot {
     /**
      * run: PolyBot's default behavior
      */
