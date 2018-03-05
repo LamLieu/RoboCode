@@ -1,78 +1,133 @@
 package IfAndOnlyIfs;
-
 import robocode.*;
 import robocode.util.Utils;
-
 import java.awt.Color;
-
-// API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
 
 /**
  * PolyBot - a robot by Lam Lieu and Juan Vera
  */
-public class PolyBot extends AdvancedRobot {
+public class PolyBot extends AdvancedRobot
+{
 
+    public int count = 0;
     public boolean check = true;
     public boolean beginGame = true;
     public boolean midGame = false;
     public boolean endGame = false;
     public int botCount;
+    public double enemyBearing;
+    public boolean isColliding = false;
+        
 
     public void run() {
-
+    
+        setAdjustGunForRobotTurn(true);
         botCount = getOthers();
+        setColors(Color.RED, Color.GREEN, Color.WHITE);
+        setBulletColor(Color.BLACK);
+        setTurnGunLeft(Double.POSITIVE_INFINITY);    
+        
+        if(getOthers() <= 2) {
+            beginGame = false;
+            midGame = false;
+            endGame = true;
+        }            
+        
+        while(true) {
+        
+            count++;
+            
+            if(isColliding && count > 4) {
+                isColliding = false;
+                setTurnGunLeft(Double.POSITIVE_INFINITY);
+                execute();
+            }
 
-        setColors(Color.RED, Color.BLACK, Color.WHITE);
-
-        while (true) {
-            setTurnGunLeft(360);
-            movement();
+            if(beginGame)
+                movement();            
+            else if(midGame)
+                movement2();
+            else if(endGame)
+                movement3();
         }
     }
-
+    
     public void onScannedRobot(ScannedRobotEvent e) {
-        double firePower = 700 / e.getDistance();
-        fire(firePower);
-    }
+        if(!isColliding) {
+            double firePower = 600 / e.getDistance();
+            if(!endGame && !isColliding && e.getDistance() < 600) {
+                fire(firePower);        
+              }
+            else if(endGame) {
+                setAhead(10);
+                setTurnRight(e.getBearing());
+                double turn = getHeading() + e.getBearing() - getGunHeading();
+                  setTurnGunRight(Utils.normalRelativeAngleDegrees(turn));
+                 if((getGunHeading()-getHeading()) < 5 && !isColliding) {
+                       fire(firePower);            
+                }
+            }
+        }
 
+        if(isColliding) {
+            fire(3);
+        }
+        execute();
+    }
+    
     public void onRobotDeath(RobotDeathEvent e) {
-        out.println("checking game");
-        if (getOthers() < botCount / 2 && getOthers() > 2) {
+        if(getOthers() < botCount/2 && getOthers() > 2) {
             midGame = true;
             beginGame = false;
         }
-        else if (getOthers() <= 2) {
+        else if(getOthers() <= 2) {
+            beginGame = false;
             midGame = false;
             endGame = true;
         }
+        execute();
     }
-
-    /**
-     * onHitByBullet: What to do when you're hit by a bullet
-     */
-    public void onHitByBullet(HitByBulletEvent e) {
-        // Replace the next line with any behavior you would like
-        turnRight(45);
-    }
-
-    /**
-     * onHitWall: What to do when you hit a wall
-     */
+    
     public void onHitWall(HitWallEvent e) {
-        int count = 0;
-        if (count % 2 == 0) {
-            turnRight(30);
-            ahead(50);
-        }
-        else {
-            turnLeft(30);
-            ahead(50);
-        }
-        count++;
+        setInterruptible(true);
+        back(20);
+        turnRight(90);
     }
 
-    // Some code from http://robowiki.net/wiki/GoTo
-    private void movement() {
+    public void movement2() {
+        checkWalls();
+        setAhead(100);
+        setTurnGunRight(100);
+        setTurnLeft(2);
+        execute();
+    }
+    
+    public void movement3() {
+        checkWalls();
+        setAhead(100);
+        setTurnGunRight(100);
+        execute();
+    }
+    
+    
+    public void onHitRobot(HitRobotEvent e) {
+        fire(3);
+        setInterruptible(true);
+        setBack(10);
+        isColliding = true;
+        count = 0;
+        if(!endGame) {
+            setTurnRight(e.getBearing());
+            double turn = getHeading() + e.getBearing() - getGunHeading();
+            setTurnGunRight(Utils.normalRelativeAngleDegrees(turn));
+        }
+        execute();
+    }
+    
+
+
+
+        private void movement() {
         double targetX, targetY;
         double x1 = getBattleFieldWidth() / 2;
         double y1 = getBattleFieldHeight() / 2;
@@ -105,47 +160,23 @@ public class PolyBot extends AdvancedRobot {
             targetY = y2;
         }
         // Detects if robot gets near wall and turns 55 deg if it's within range
-        if (getX() >= getBattleFieldWidth() - getBattleFieldWidth() / 10) {
-            double count = 0;
-            if (count == 0 || count % 2 == 0) {
-                turnRight(55);
-            }
-            count++;
-        }
-        else if (getX() < getBattleFieldWidth() / 20) {
-            double count = 0;
-            if (count == 0 || count % 2 == 0) {
-                turnRight(55);
-            }
-        }
-        if (getY() >= getBattleFieldHeight() - getBattleFieldHeight() / 20) {
-            double count = 0;
-            if (count == 0 || count % 2 == 0) {
-                turnRight(55);
-            }
-            count++;
-        }
-        else if (getY() < getBattleFieldHeight() / 10) {
-            double count = 0;
-            if (count == 0 || count % 2 == 0) {
-                turnRight(55);
-            }
-            count++;
-        }
-        // Calculates the angle to target location
-        double angleToTarget = Math.atan2(targetX, targetY);
-
-        /* Calculate the turn required get there */
-        double targetAngle = Utils.normalRelativeAngle(angleToTarget - getHeadingRadians());
-
-        /*
-         * The Java Hypot method is a quick way of getting the length
-         * of a vector. Which in this case is also the distance between
-         * our robot and the target location.
-         */
+         checkWalls();
         double distance = Math.hypot(targetX, targetY);
         setAhead(distance);
         execute();
+    }
+    
+    public void checkWalls() {
+        if ((getX() >= getBattleFieldWidth() - getBattleFieldWidth() / 10)
+        || (getX() < getBattleFieldWidth() / 10)
+        || (getY() >= getBattleFieldHeight() - getBattleFieldHeight() / 10)
+        || (getY() < getBattleFieldHeight() / 10)) {        
+            double count = 0;
+            if (count == 0 || count % 2 == 0) {
+                turnRight(55);
+            }
+            count++;
+        }
     }
 
     /* Calculates which target x coordinate the bot should go based on spawn location */
@@ -173,3 +204,6 @@ public class PolyBot extends AdvancedRobot {
         return getBattleFieldWidth() / 20;
     }
 }
+
+
+
