@@ -1,4 +1,4 @@
-package IfAndOnlyIfs;
+package lslieu_jvera;
 import robocode.*;
 import robocode.util.Utils;
 import java.awt.Color;
