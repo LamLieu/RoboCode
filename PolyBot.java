@@ -1,4 +1,4 @@
-package lslieu_jvera;
+package lslieu_jlvera;
 import robocode.*;
 import robocode.util.Utils;
 import java.awt.Color;
